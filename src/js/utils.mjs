@@ -50,6 +50,11 @@ export async function renderWithTemplate(
   position = "afterbegin",
   clear = true
 ) {
+  if (!parentElement) {
+    console.error("Parent element is null. Cannot render template.");
+    return;
+  }
+
   if (clear) {
     parentElement.innerHTML = "";
   }
@@ -59,6 +64,7 @@ export async function renderWithTemplate(
     callback(data);
   }
 }
+
 
 function loadTemplate(path) {
   // wait what?  we are returning a new function? this is called currying and can be very helpful.
@@ -72,15 +78,26 @@ function loadTemplate(path) {
 }
 
 export async function loadHeaderFooter() {
-  // header template will still be a function! But one where we have pre-supplied the argument.
-  // headerTemplate and footerTemplate will be almost identical, but they will remember the path we passed in when we created them
-  // why is it important that they stay functions?  The renderWithTemplate function is expecting a template function...if we sent it a string it would break, if we changed it to expect a string then it would become less flexible.
   const headerTemplateFn = loadTemplate("/partials/header.html");
   const footerTemplateFn = loadTemplate("/partials/footer.html");
+
   const headerEl = document.querySelector("#main-header");
   const footerEl = document.querySelector("#main-footer");
-  renderWithTemplate(headerTemplateFn, headerEl);
-  renderWithTemplate(footerTemplateFn, footerEl);
+
+  console.log("Header element:", headerEl);
+  console.log("Footer element:", footerEl);
+
+  if (!headerEl) {
+    console.error("Header element (#main-header) not found in DOM.");
+  } else {
+    await renderWithTemplate(headerTemplateFn, headerEl);
+  }
+
+  if (!footerEl) {
+    console.error("Footer element (#main-footer) not found in DOM.");
+  } else {
+    await renderWithTemplate(footerTemplateFn, footerEl);
+  }
 }
 
 export function alertMessage(message, scroll = true, duration = 3000) {
@@ -94,6 +111,7 @@ export function alertMessage(message, scroll = true, duration = 3000) {
       main.removeChild(this);
     }
   });
+
   const main = document.querySelector("main");
   main.prepend(alert);
   // make sure they see the alert by scrolling to the top of the window
@@ -104,4 +122,11 @@ export function alertMessage(message, scroll = true, duration = 3000) {
   // setTimeout(function () {
   //   main.removeChild(alert);
   // }, duration);
+
+  
+}
+
+export function removeAllAlerts() {
+  const alerts = document.querySelectorAll(".alert");
+  alerts.forEach((alert) => document.querySelector("main").removeChild(alert));
 }
